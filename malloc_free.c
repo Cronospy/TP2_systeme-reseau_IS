@@ -17,6 +17,16 @@ typedef struct HEADER_TAG {
 
 HEADER* free_list = NULL;
 
+void print_free_list(){
+    printf("free_list :");
+    HEADER* current_block = free_list;
+    while(current_block != NULL){
+        printf("\n-> %p | %ld ",current_block,current_block->bloc_size);
+        current_block = current_block->ptr_next;
+    }
+    printf("\n-> NULL\n");
+}
+
 void* user_ptr(HEADER* bloc){
     return (char*)bloc + sizeof(HEADER);
 }
@@ -107,22 +117,29 @@ void insert(HEADER* block){
     while (current_block != NULL) {
         if (current_block >= block) {
             if (previous_block == NULL) {
+                //insertion en début de liste
+                block->ptr_next = free_list;
                 free_list = block;
-                block->ptr_next = current_block;
-
             }
             else{
-                previous_block->ptr_next = block;
+                // insertion en milieu de liste
                 block->ptr_next = current_block;
-
+                previous_block->ptr_next = block;
             }
-            break;
+            return;
         }
-        previous_block=current_block;
+        previous_block = current_block;
         current_block = current_block->ptr_next;
     }
-    free_list = block;
+
     block->ptr_next = NULL;
+    if (previous_block == NULL){
+        free_list=block; // liste totalement vide
+    }
+    else {
+        previous_block->ptr_next = block;
+    }
+    
 }
 
 void free_3is(void* ptr){
@@ -134,7 +151,13 @@ void free_3is(void* ptr){
      *              -> Fusion des Blocs
      */
     HEADER* header_ptr = header_from_user_ptr(ptr);
+
+    long* footer = (long*)(char*)header_ptr + sizeof(HEADER) + header_ptr->bloc_size ;
     // Check débordement
+    if (header_ptr != MAGIC_NUMBER || *footer == MAGIC_NUMBER){
+        printf("Erreur de dépassement !");
+        return;
+    }
 
     // Insertion du bloc dans la liste
     insert(header_ptr);
@@ -148,12 +171,23 @@ void free_3is(void* ptr){
 int main(){
     printf("TP n°2 : Allocateur de Mémoire \n");
 
+    print_free_list();
+
     // Allocation multiple 
+    printf("\n*--------------- Allocation multiple ---------------*\n");
     printf("sbrk(0):%p\n",sbrk(0));
     void* ptr1 = malloc_3is(100);
     printf("sbrk(0):%p\n",sbrk(0));
     void* ptr2 = malloc_3is(100);
     printf("sbrk(0):%p\n",sbrk(0));
+    void* ptr3 = malloc_3is(100);
+    printf("sbrk(0):%p\n",sbrk(0));
+
+    printf("\n*--------------- Libération d'un bloc ---------------*\n");
+    free_3is(ptr2);
+    print_free_list();
+    free_3is(ptr1);
+    print_free_list();
 
     printf("Fin du TP\n");
     return 0;

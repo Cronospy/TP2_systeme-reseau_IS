@@ -104,24 +104,25 @@ void insert(HEADER* block){
     HEADER* previous_block = NULL;
     HEADER* current_block = free_list;
 
-    while(current_block!=NULL){
-        if(block < current_block){
-            // Tête de la liste
-            if(previous_block != NULL){
-                block->ptr_next = free_list;
+    while (current_block != NULL) {
+        if (current_block >= block) {
+            if (previous_block == NULL) {
+                free_list = block;
+                block->ptr_next = current_block;
+
             }
             else{
                 previous_block->ptr_next = block;
                 block->ptr_next = current_block;
+
             }
             break;
         }
-        previous_block = current_block;
+        previous_block=current_block;
         current_block = current_block->ptr_next;
     }
-    block->ptr_next = NULL;
     free_list = block;
-    return;
+    block->ptr_next = NULL;
 }
 
 void free_3is(void* ptr){

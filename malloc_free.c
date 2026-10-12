@@ -152,12 +152,8 @@ void free_3is(void* ptr){
      */
     HEADER* header_ptr = header_from_user_ptr(ptr);
 
-    long* footer = (long*)(char*)header_ptr + sizeof(HEADER) + header_ptr->bloc_size ;
+    //long* footer = (long*)(char*)header_ptr + sizeof(HEADER) + header_ptr->bloc_size ;
     // Check débordement
-    if (header_ptr != MAGIC_NUMBER || *footer == MAGIC_NUMBER){
-        printf("Erreur de dépassement !");
-        return;
-    }
 
     // Insertion du bloc dans la liste
     insert(header_ptr);

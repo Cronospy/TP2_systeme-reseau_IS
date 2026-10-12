@@ -17,6 +17,16 @@ typedef struct HEADER_TAG {
 
 HEADER* free_list = NULL;
 
+void print_free_list(){
+    printf("free_list :");
+    HEADER* current_block = free_list;
+    while(current_block != NULL){
+        printf("\n-> %p | %ld ",current_block,current_block->bloc_size);
+        current_block = current_block->ptr_next;
+    }
+    printf("\n-> NULL\n");
+}
+
 void* user_ptr(HEADER* bloc){
     return (char*)bloc + sizeof(HEADER);
 }
@@ -36,7 +46,7 @@ HEADER* request_memory(size_t size){
     block->bloc_size = size;
     block->magic_number = MAGIC_NUMBER;
 
-    //footer 
+    //footer
     long* footer = (long*)(char*)block + sizeof(HEADER) + size ;
     *footer = MAGIC_NUMBER;
 
@@ -48,7 +58,7 @@ void* malloc_3is(size_t size){
      * - Si aucun bloc disponible :
      *      -> On agrandit le tas avec la fonction sbrk()
      * - Recherche d'un bloc de taille suffisante et disponible dans la liste chaînée
-     *      -> retourne le bloc dispo ou une partie du bloc (division du bloc) 
+     *      -> retourne le bloc dispo ou une partie du bloc (division du bloc)
      */
 
     if(size <= 0) return NULL;
@@ -63,7 +73,7 @@ void* malloc_3is(size_t size){
         previous_block = current_block;
         current_block = current_block->ptr_next;
     }
-    
+
     // Un bloc est disponible  (division de bloc si taille plus grande à faire ;-;)
     if(current_block != NULL){
         if (previous_block == NULL){
@@ -78,16 +88,16 @@ void* malloc_3is(size_t size){
         return user_ptr(current_block);
     }
 
-    // Aucun bloc disponible 
+    // Aucun bloc disponible
     HEADER* new_block = request_memory(size);
     return user_ptr(new_block);
 }
 
 void fusion(HEADER* blocA, HEADER* blocB){
     /**
-     * Fusionne deux bloc mémoire dans la liste des blocs libres 
-     *  - ptr_next : pointeur du deuxième pointeur 
-     *  - bloc_size : sommme des bloc_size 
+     * Fusionne deux bloc mémoire dans la liste des blocs libres
+     *  - ptr_next : pointeur du deuxième pointeur
+     *  - bloc_size : sommme des bloc_size
      *  - magic_number : MAGIC_NUMBER
      */
 
@@ -107,36 +117,46 @@ void insert(HEADER* block){
     while (current_block != NULL) {
         if (current_block >= block) {
             if (previous_block == NULL) {
+                //insertion en début de liste
+                block->ptr_next = free_list;
                 free_list = block;
-                block->ptr_next = current_block;
-
             }
             else{
-                previous_block->ptr_next = block;
+                // insertion en milieu de liste
                 block->ptr_next = current_block;
-
+                previous_block->ptr_next = block;
             }
-            break;
+            return;
         }
-        previous_block=current_block;
+        previous_block = current_block;
         current_block = current_block->ptr_next;
     }
-    free_list = block;
+
     block->ptr_next = NULL;
+    if (previous_block == NULL){
+        free_list=block; // liste totalement vide
+    }
+    else {
+        previous_block->ptr_next = block;
+    }
+
 }
 
 void free_3is(void* ptr){
     /**
-     * - Contrôle des débordements de mémoire avec le MAGIC_NUMBER 
-     *      -> retour d'une erreur de débordement 
-     * - Le bloc est réinsérer dans le liste des blocs libres (classée par ordre croissant des adresses des blocs de mémoire disponibles) 
+     * - Contrôle des débordements de mémoire avec le MAGIC_NUMBER
+     *      -> retour d'une erreur de débordement
+     * - Le bloc est réinsérer dans le liste des blocs libres (classée par ordre croissant des adresses des blocs de mémoire disponibles)
      *      -> Si le bloc mémoire libéré est contigu avec un bloc mémoire déjà libre
      *              -> Fusion des Blocs
      */
     HEADER* header_ptr = header_from_user_ptr(ptr);
-    // insertion du bloc dans la liste
 
+    //long* footer = (long*)(char*)header_ptr + sizeof(HEADER) + header_ptr->bloc_size ;
     // Check débordement
+
+    // Insertion du bloc dans la liste
+    insert(header_ptr);
 
     // check bloc de gauche et de droite
 
@@ -144,9 +164,27 @@ void free_3is(void* ptr){
 }
 
 
-
 int main(){
     printf("TP n°2 : Allocateur de Mémoire \n");
 
+    print_free_list();
+
+    // Allocation multiple
+    printf("\n*--------------- Allocation multiple ---------------*\n");
+    printf("sbrk(0):%p\n",sbrk(0));
+    void* ptr1 = malloc_3is(100);
+    printf("sbrk(0):%p\n",sbrk(0));
+    void* ptr2 = malloc_3is(100);
+    printf("sbrk(0):%p\n",sbrk(0));
+    void* ptr3 = malloc_3is(100);
+    printf("sbrk(0):%p\n",sbrk(0));
+
+    printf("\n*--------------- Libération d'un bloc ---------------*\n");
+    free_3is(ptr2);
+    print_free_list();
+    free_3is(ptr1);
+    print_free_list();
+
+    printf("Fin du TP\n");
     return 0;
 }

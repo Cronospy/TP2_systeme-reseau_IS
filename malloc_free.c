@@ -160,7 +160,6 @@ void free_3is(void* ptr){
     long* footer = (long*) ((char*)header_ptr + sizeof(HEADER) + header_ptr->bloc_size) ;
     // Check débordement
     if (header_ptr->magic_number != MAGIC_NUMBER || *footer != MAGIC_NUMBER){
-        printf("Erreur de dépassement !\n");
         return;
     }
 
@@ -182,6 +181,18 @@ void check_displaying(void* ptr){
     }
 }
 
+void decoupage_bloc(HEADER* block, size_t expected_size){
+    /**
+    * - Découpage d'un bloc supérieur à size + overhead (header et magic number)
+    */
+    if (block->bloc_size > expected_size + sizeof(HEADER) + sizeof(long)){
+        HEADER* new_block = (HEADER*)((char*)(block+1) + block->bloc_size);
+
+        new_block->bloc_size = block->bloc_size - expected_size - sizeof(long) - sizeof(HEADER);
+
+        insert(new_block);
+    }
+}
 
 int main(){
     printf("TP n°2 : Allocateur de Mémoire \n");
@@ -191,13 +202,13 @@ int main(){
     // Allocation multiple 
     printf("\n*--------------- Allocation multiple ---------------*\n");
     printf("sbrk(0):%p\n",sbrk(0));
-    void* ptr1 = malloc_3is(100);
+    void* ptr1 = malloc_3is(128);
     printf("sbrk(0):%p\n",sbrk(0));
-    void* ptr2 = malloc_3is(100);
+    void* ptr2 = malloc_3is(128);
     printf("sbrk(0):%p\n",sbrk(0));
-    void* ptr3 = malloc_3is(100);
+    void* ptr3 = malloc_3is(128);
     printf("sbrk(0):%p\n",sbrk(0));
-    void* ptr4 = malloc_3is(100);
+    void* ptr4 = malloc_3is(128);
     printf("sbrk(0):%p\n",sbrk(0));
 
     printf("\n*--------------- Libération d'un bloc ---------------*\n");
@@ -208,7 +219,7 @@ int main(){
 
     printf("\n*--------------- Débordement de mémoire ---------------*\n");
     //écriture dans le footer
-    long* footer = (long*)((char*)ptr3 + 100);
+    long* footer = (long*)((char*)ptr3 + 128);
     *footer = 42;
     //écriture dans le header
     HEADER* header = header_from_user_ptr(ptr4);
@@ -225,6 +236,15 @@ int main(){
     print_free_list();
     void* ptr6 = malloc_3is(1024);
     printf("pointer : %p\n",ptr6);
+    free_3is(ptr6);
+
+    printf("\n*--------------- Découpage des gros blocs   ---------------*\n");
+
+    void* ptr7 = malloc_3is(512);
+    print_free_list(); 
+
+    printf("\n*--------------- Fusion des blocs libres adjacents   ---------------*\n");
+
 
     printf("Fin du TP\n");
     return 0;

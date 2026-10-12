@@ -217,6 +217,15 @@ int main(){
     check_displaying(ptr3);
     check_displaying(ptr4);
 
+    printf("\n*--------------- Réutilisation d’un bloc libéré  ---------------*\n");
+
+    void* ptr5 = malloc_3is(1024);
+    printf("pointer : %p\n",ptr5);
+    free_3is(ptr5);
+    print_free_list();
+    void* ptr6 = malloc_3is(1024);
+    printf("pointer : %p\n",ptr6);
+
     printf("Fin du TP\n");
     return 0;
 }

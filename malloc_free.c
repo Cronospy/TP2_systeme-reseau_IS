@@ -112,7 +112,11 @@ void free_3is(void* ptr){
      *              -> Fusion des Blocs
      */
     HEADER* header_ptr = header_from_user_ptr(ptr);
-    // insertion du 
+    // insertion du bloc dans la liste
+
+    // Check débordement
+
+    // check bloc de gauche et de droite
 
     return;
 }

@@ -47,7 +47,7 @@ HEADER* request_memory(size_t size){
     block->magic_number = MAGIC_NUMBER;
 
     //footer 
-    long* footer = (long*)(char*)block + sizeof(HEADER) + size ;
+    long* footer = (long*) ((char*)block + sizeof(HEADER) + size);
     *footer = MAGIC_NUMBER;
 
     return block;
@@ -90,6 +90,11 @@ void* malloc_3is(size_t size){
 
     // Aucun bloc disponible 
     HEADER* new_block = request_memory(size);
+
+    if (new_block == NULL){
+        return NULL;
+    }
+
     return user_ptr(new_block);
 }
 
@@ -152,8 +157,12 @@ void free_3is(void* ptr){
      */
     HEADER* header_ptr = header_from_user_ptr(ptr);
 
-    //long* footer = (long*)(char*)header_ptr + sizeof(HEADER) + header_ptr->bloc_size ;
+    long* footer = (long*) ((char*)header_ptr + sizeof(HEADER) + header_ptr->bloc_size) ;
     // Check débordement
+    if (header_ptr->magic_number != MAGIC_NUMBER || *footer != MAGIC_NUMBER){
+        printf("Erreur de dépassement !\n");
+        return;
+    }
 
     // Insertion du bloc dans la liste
     insert(header_ptr);
@@ -161,6 +170,16 @@ void free_3is(void* ptr){
     // check bloc de gauche et de droite
 
     return;
+}
+
+void check_displaying(void* ptr){
+    HEADER* header_ptr = header_from_user_ptr(ptr);
+
+    long* footer = (long*) ((char*)header_ptr + sizeof(HEADER) + header_ptr->bloc_size) ;
+    if (header_ptr->magic_number != MAGIC_NUMBER || *footer != MAGIC_NUMBER){
+        printf("Erreur de dépassement !\n");
+        return;
+    }
 }
 
 
@@ -178,12 +197,25 @@ int main(){
     printf("sbrk(0):%p\n",sbrk(0));
     void* ptr3 = malloc_3is(100);
     printf("sbrk(0):%p\n",sbrk(0));
+    void* ptr4 = malloc_3is(100);
+    printf("sbrk(0):%p\n",sbrk(0));
 
     printf("\n*--------------- Libération d'un bloc ---------------*\n");
     free_3is(ptr2);
     print_free_list();
     free_3is(ptr1);
     print_free_list();
+
+    printf("\n*--------------- Débordement de mémoire ---------------*\n");
+    //écriture dans le footer
+    long* footer = (long*)((char*)ptr3 + 100);
+    *footer = 42;
+    //écriture dans le header
+    HEADER* header = header_from_user_ptr(ptr4);
+    header->magic_number = 42;
+
+    check_displaying(ptr3);
+    check_displaying(ptr4);
 
     printf("Fin du TP\n");
     return 0;

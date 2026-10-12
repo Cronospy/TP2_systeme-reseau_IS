@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #define MAGIC_NUMBER 0xBADA110CBADA110CL
 
@@ -95,11 +96,31 @@ void fusion(HEADER* blocA, HEADER* blocB){
     return;
 }
 
-void insert(HEADER* bloc){
+void insert(HEADER* block){
     /**
      * Insert le bloc dans la liste des blocs libres en gardant la propriété :
      *   -> la liste est classée par ordre croissant des adresses
      */
+    HEADER* previous_block = NULL;
+    HEADER* current_block = free_list;
+
+    while(current_block!=NULL){
+        if(block < current_block){
+            // Tête de la liste
+            if(previous_block != NULL){
+                block->ptr_next = free_list;
+            }
+            else{
+                previous_block->ptr_next = block;
+                block->ptr_next = current_block;
+            }
+            break;
+        }
+        previous_block = current_block;
+        current_block = current_block->ptr_next;
+    }
+    block->ptr_next = NULL;
+    free_list = block;
     return;
 }
 
@@ -112,9 +133,10 @@ void free_3is(void* ptr){
      *              -> Fusion des Blocs
      */
     HEADER* header_ptr = header_from_user_ptr(ptr);
-    // insertion du bloc dans la liste
-
     // Check débordement
+
+    // Insertion du bloc dans la liste
+    insert(header_ptr);
 
     // check bloc de gauche et de droite
 
@@ -122,9 +144,16 @@ void free_3is(void* ptr){
 }
 
 
-
 int main(){
     printf("TP n°2 : Allocateur de Mémoire \n");
 
+    // Allocation multiple 
+    printf("sbrk(0):%p\n",sbrk(0));
+    void* ptr1 = malloc_3is(100);
+    printf("sbrk(0):%p\n",sbrk(0));
+    void* ptr2 = malloc_3is(100);
+    printf("sbrk(0):%p\n",sbrk(0));
+
+    printf("Fin du TP\n");
     return 0;
 }

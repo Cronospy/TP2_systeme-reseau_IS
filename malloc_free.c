@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #define MAGIC_NUMBER 0xBADA110CBADA110CL
 
@@ -95,12 +96,33 @@ void fusion(HEADER* blocA, HEADER* blocB){
     return;
 }
 
-void insert(HEADER* bloc){
+void insert(HEADER* block){
     /**
      * Insert le bloc dans la liste des blocs libres en gardant la propriété :
      *   -> la liste est classée par ordre croissant des adresses
      */
-    return;
+    HEADER* previous_block = NULL;
+    HEADER* current_block = free_list;
+
+    while (current_block != NULL) {
+        if (current_block >= block) {
+            if (previous_block == NULL) {
+                free_list = block;
+                block->ptr_next = current_block;
+
+            }
+            else{
+                previous_block->ptr_next = block;
+                block->ptr_next = current_block;
+
+            }
+            break;
+        }
+        previous_block=current_block;
+        current_block = current_block->ptr_next;
+    }
+    free_list = block;
+    block->ptr_next = NULL;
 }
 
 void free_3is(void* ptr){

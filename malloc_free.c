@@ -15,6 +15,8 @@ typedef struct HEADER_TAG {
     long magic_number;              /* 0xBADA110CBADA110CL */
 } HEADER;
 
+void decoupage_bloc(HEADER* block, size_t expected_size);
+
 HEADER* free_list = NULL;
 
 void print_free_list(){
@@ -76,6 +78,7 @@ void* malloc_3is(size_t size){
 
     // Un bloc est disponible  (division de bloc si taille plus grande à faire ;-;)
     if(current_block != NULL){
+        decoupage_bloc(current_block,size);
         if (previous_block == NULL){
             free_list = current_block->ptr_next;
         }
@@ -162,11 +165,8 @@ void free_3is(void* ptr){
     if (header_ptr->magic_number != MAGIC_NUMBER || *footer != MAGIC_NUMBER){
         return;
     }
-
     // Insertion du bloc dans la liste
     insert(header_ptr);
-
-    // check bloc de gauche et de droite
 
     return;
 }

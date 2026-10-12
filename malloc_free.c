@@ -46,7 +46,7 @@ HEADER* request_memory(size_t size){
     block->bloc_size = size;
     block->magic_number = MAGIC_NUMBER;
 
-    //footer 
+    //footer
     long* footer = (long*) ((char*)block + sizeof(HEADER) + size);
     *footer = MAGIC_NUMBER;
 
@@ -58,7 +58,7 @@ void* malloc_3is(size_t size){
      * - Si aucun bloc disponible :
      *      -> On agrandit le tas avec la fonction sbrk()
      * - Recherche d'un bloc de taille suffisante et disponible dans la liste chaînée
-     *      -> retourne le bloc dispo ou une partie du bloc (division du bloc) 
+     *      -> retourne le bloc dispo ou une partie du bloc (division du bloc)
      */
 
     if(size <= 0) return NULL;
@@ -73,7 +73,7 @@ void* malloc_3is(size_t size){
         previous_block = current_block;
         current_block = current_block->ptr_next;
     }
-    
+
     // Un bloc est disponible  (division de bloc si taille plus grande à faire ;-;)
     if(current_block != NULL){
         if (previous_block == NULL){
@@ -88,7 +88,7 @@ void* malloc_3is(size_t size){
         return user_ptr(current_block);
     }
 
-    // Aucun bloc disponible 
+    // Aucun bloc disponible
     HEADER* new_block = request_memory(size);
 
     if (new_block == NULL){
@@ -100,9 +100,9 @@ void* malloc_3is(size_t size){
 
 void fusion(HEADER* blocA, HEADER* blocB){
     /**
-     * Fusionne deux bloc mémoire dans la liste des blocs libres 
-     *  - ptr_next : pointeur du deuxième pointeur 
-     *  - bloc_size : sommme des bloc_size 
+     * Fusionne deux bloc mémoire dans la liste des blocs libres
+     *  - ptr_next : pointeur du deuxième pointeur
+     *  - bloc_size : sommme des bloc_size
      *  - magic_number : MAGIC_NUMBER
      */
 
@@ -144,14 +144,14 @@ void insert(HEADER* block){
     else {
         previous_block->ptr_next = block;
     }
-    
+
 }
 
 void free_3is(void* ptr){
     /**
-     * - Contrôle des débordements de mémoire avec le MAGIC_NUMBER 
-     *      -> retour d'une erreur de débordement 
-     * - Le bloc est réinsérer dans le liste des blocs libres (classée par ordre croissant des adresses des blocs de mémoire disponibles) 
+     * - Contrôle des débordements de mémoire avec le MAGIC_NUMBER
+     *      -> retour d'une erreur de débordement
+     * - Le bloc est réinsérer dans le liste des blocs libres (classée par ordre croissant des adresses des blocs de mémoire disponibles)
      *      -> Si le bloc mémoire libéré est contigu avec un bloc mémoire déjà libre
      *              -> Fusion des Blocs
      */
@@ -199,7 +199,7 @@ int main(){
 
     print_free_list();
 
-    // Allocation multiple 
+    // Allocation multiple
     printf("\n*--------------- Allocation multiple ---------------*\n");
     printf("sbrk(0):%p\n",sbrk(0));
     void* ptr1 = malloc_3is(128);
